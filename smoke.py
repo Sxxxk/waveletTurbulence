@@ -10,10 +10,6 @@ class Smoke:
         self.velocity_grid = None
         self.velocity_accessor = None
 
-        self.res_x = 0
-        self.res_y = 0
-        self.res_z = 0
-
         grids = vdb.readAllGridMetadata(filename)
         for grid in grids:
             if grid.name == 'density':
