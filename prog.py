@@ -31,3 +31,18 @@ sphere.name = 'sphere'
 
 # Write both grids to a VDB file.
 vdb.write('mygrids.vdb', grids=[cube, sphere])
+
+
+cube = vdb.FloatGrid()
+cube.fill(min=(10, 10, 10), max=(18, 18, 18), value=1.0)
+
+# Name the grid "cube".
+cube.name = 'density'
+
+v = vdb.Vec3SGrid()
+v.fill(min=(10, 10, 10), max=(18, 18, 18), value=(0.0, 0.0, 0.0))
+
+# Name the grid "cube".
+v.name = 'v'
+print(v.evalActiveVoxelBoundingBox())
+vdb.write('test.vdb', grids = [cube, v])
