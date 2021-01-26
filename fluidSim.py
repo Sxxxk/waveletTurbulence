@@ -1,3 +1,11 @@
+"""
+Fluid Simulations in Python
+Implementation of https://www.dgp.toronto.edu/public_user/stam/reality/Research/pdf/GDC03.pdf
+
+@author : Alexis
+@date : jan. 2021
+"""
+
 import numpy as np
 import math
 from PIL import Image
@@ -222,25 +230,34 @@ def advect(b, d, d0, velocX, velocY, velocZ, dt, N):
 
 
 
+class Voxel:
+    def __init__(self):
+      self.density = 0
+      self.Vx = 0
+      self.Vy = 0
+      self.Vz = 0
+
+
 class FluidCube:
     def __init__(self):
-      self.size = 40 # int
-      self.dt = 0.1 # float
-      self.diff = 0.001 # float
-      self.visc = 0.001 # float
+        self.N = 40
+        self.size = 42*42 # int
+        self.dt = 0.1 # float
+        self.diff = 0.001 # float
+        self.visc = 0.001 # float
 
-      self.s = None # pointeur vers float (tableau de dimension 3)
-      self.density = None # pointeur vers float (tableau de dimension 3)
+        self.u = None
+        self.u_prev = None
+        self.v = None
+        self.v_prev = None
 
-      self.Vx = None # pointeur vers float (tableau de dimension 3)
-      self.Vy = None # pointeur vers float (tableau de dimension 3)
-      self.Vz = None # pointeur vers float (tableau de dimension 3)
+        self.dens = None
+        self.dens_prev = None
 
-      self.Vx0 = None # pointeur vers float (tableau de dimension 3)
-      self.Vy0 = None # pointeur vers float (tableau de dimension 3)
-      self.Vz0 = None # pointeur vers float (tableau de dimension 3)
+    def IX(self, i, j, k):
+        return (k * (N + 2) * (N + 2) + j * (N + 2) + i)
 
-    def create(self, size, diffusion, viscosity, dt):
+    def create(self, N, diffusion, viscosity, dt):
         """Crée le fluide
 
         Args:
@@ -249,33 +266,134 @@ class FluidCube:
             viscosity (int): 
             dt (float): 
         """
-        self.size = size
+        self.N = N
+        self.size = (N+2) * (N+2) * (N+2)
         self.dt = dt
         self.diff = diffusion
         self.visc = viscosity
 
-        self.s = np.zeros((size, size, size))
-        self.density = np.zeros((size, size, size))
+        self.u = np.zeros(size)
+        self.u_prev = np.zeros(size)
+        self.v = np.zeros(size)
+        self.v_prev = np.zeros(size)
 
-        self.Vx = np.zeros((size, size, size))
-        self.Vy = np.zeros((size, size, size))
-        self.Vz = np.zeros((size, size, size))
-        
-        self.Vx0 = np.zeros((size, size, size))
-        self.Vy0 = np.zeros((size, size, size))
-        self.Vz0 = np.zeros((size, size, size))
+        self.dens = np.zeros(size)
+        self.dens_prev = np.zeros(size)
     
-    def addDensity(self, x, y, z, amount):
+    def add_source(self, x, amount):
         """Add density
 
         Args:
-            x (int): 
-            y (int): 
-            z (int): 
-            amount (float): 
+            amount (array): 
         """
-        self.density[x, y, z] += amount
+        for i in range(size):
+            self.x[i] += self.dt * amount[i]
+
+
+    def diffuse(self, b, x, x0):
+        """diffuse
+
+        Args:
+            b (int): 
+            x (array): 
+            x0 (array): 
+        """
+        N = self.N
+        dt = self.dt
+        diff = self.diff
+
+        a= dt * diff * N * N * N # Quid du dernier N ?
+        for k in range(20):
+            for i in range(1, N + 1):
+                for j in range(1, N + 1):
+                    for k in range(1, N + 1):
+                        x[self.IX(i, j, k)] = ( x0[self.IX(i, j, k)] + a * (
+                              x0[self.IX(i-1, j, k)] + x0[self.IX(i+1, j, k)]
+                            + x0[self.IX(i, j-1, k)] + x0[self.IX(i, j+1, k)]
+                            + x0[self.IX(i, j, k-1)] + x0[self.IX(i, j, k+1)]
+                            - 6 * x0[self.IX(i, j, k)])) / (1 + 6 * a)
+
+            set_bnd (N, b, x)
     
+    def advect(self, b, d, d0, u, v, w):
+        """advect
+
+        Args:
+            b (int): 
+            d (array): 
+            d0 (array): 
+            u (array): 
+            v (array): 
+            w (array): 
+        """
+        N = self.N
+
+        dt0 = self.dt * N
+        for i in range(1, N + 1):
+            for j in range(1, N + 1):
+                for k in range(1, N + 1):
+                    x = i - dt0 * u[self.IX(i, j, k)]
+                    y = j - dt0 * v[self.IX(i, j, k)]
+                    z = k - dt0 * w[self.IX(i, j, k)]
+                    
+                    if x < 0.5:
+                        x = 0.5
+                    if x > N + 0.5:
+                        x = N + 0.5
+                    i0 = int(x)
+                    i1 = i0 + 1
+
+                    if y < 0.5:
+                        y = 0.5
+                    if y > N + 0.5:
+                        y = N + 0.5
+                    j0 = int(y)
+                    j1 = j0 + 1
+
+                    if z < 0.5:
+                        z = 0.5
+                    if z > N + 0.5:
+                        z = N + 0.5
+                    k0 = int(z)
+                    k1 = k0 + 1
+
+                    s1 = x - i0
+                    s0 = 1 - s1
+                    t1 = y - j0
+                    t0 = 1 - t1
+                    u1 = z - k0
+                    u0 = 1 - k1
+
+                    d[self.IX(i, j, k)] = s0 * (t0 * (u0 * d0[self.IX(i0, j0, k0)] + u1 * d0[self.IX(i0, j0, k1)])
+                                              + t1 * (u0 * d0[self.IX(i0, j1, k0)] + u1 * d0[self.IX(i0, j1, k1)])) \
+                                        + s1 * (t0 * (u0 * d0[self.IX(i1, j0, k0)] + u1 * d0[self.IX(i1, j0, k1)])
+                                              + t1 * (u0 * d0[self.IX(i1, j1, k0)] + u1 * d0[self.IX(i1, j1, k1)]))
+        
+        set_bnd(N, b, d)
+
+
+    def dens_step(self, x, x0, u, v, w):
+        """density step
+
+        Args:
+            x (array): 
+            x0 (array): 
+            u (array): 
+            v (array): 
+            w (array): 
+        """
+        N = self.N
+        diff = self.diff
+        dt = self.dt
+
+        self.add_source(x, x0)
+        x, x0 = x0, x # Swap
+        self.diffuse(0, x, x0)
+
+        x, x0 = x0, x # Swap
+        self.advect(0, x, x0, u, v, w)
+        
+
     def addVelocity(self, x, y, z, amountX, amountY, amountZ):
         """Add velocity
 
@@ -306,9 +424,20 @@ class FluidCube:
         
         diffuse(0, self.s, self.density, self.diff, self.dt, 4, self.size)
         advect(0, self.density, self.s, self.Vx, self.Vy, self.Vz, self.dt, self.size)
+    
+    def saveImg(self, filename):
+        img = Image.new("RGB", (self.size, self.size))
+        px = img.load()
+        for i in range(self.size):
+            for j in range(self.size):
+                for k in range(self.size):
+                    # print(self.density[i, j, k])
+                    px[i, j] = (int(px[i, j][0] + 200*self.density[i, j, k]), 0, 0)
+
+        img.save("{}.png".format(filename))
 
 
-def dist(a, b):
+def dist3d(a, b):
     i, j, k = a
     x, y, z = b
     return math.sqrt((i - x) ** 2 + (j - y) ** 2 + (k - z)**2)
@@ -323,10 +452,12 @@ if __name__ == "__main__":
     for i in range(N):
         for j in range(N):
             for k in range(N):
-                if dist((i, j, k), (10, 10, 20)) < 5:
+                if dist3d((i, j, k), (10, 10, 20)) < 5:
                     fluid.addDensity(i, j, k, 1)
-                    fluid.addVelocity(i, j, k, 0, 1, 0)
+                    fluid.addVelocity(i, j, k, 5, 10, 5)
+    fluid.saveImg("img/img0")
     print("==== simulation ====")
-    for step in range(100):
+    for step in range(20):
         print("step ", step)
         fluid.makeStep()
+        fluid.saveImg("img/img{}".format(step + 1))
