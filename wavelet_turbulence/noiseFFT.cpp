@@ -19,6 +19,7 @@
 /////////////////////////////////////////////////////////////////////////
 //
 #include <iostream>
+#include <fstream>
 #include <fftw3.h>
 #include <MERSENNETWISTER.h>
 
@@ -80,6 +81,12 @@ static void saveTile(float* const noiseTileData, int res, std::string filename)
 		return;
 	} 
 
+  std::ofstream file2;
+  file2.open(filename + "2");
+  for (int i = 0; i < res * res * res; i++) {
+    file2 << noiseTileData[i] << " ";
+  }
+  printf("Saved file on ascii format\n");
 	fwrite((void*)noiseTileData, sizeof(float), res * res * res, file);
 	fclose(file);
 
