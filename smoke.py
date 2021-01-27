@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 
 import pyopenvdb as vdb
-from interpolate import trilinear_interpolation
+import math
+import pywt
+import numpy as np
 from itertools import product
-
 from time import time
+
+from interpolate import trilinear_interpolation
+from noise import load_noise_tile, turbulence
+
 
 class Smoke:
     def __init__(self, filename):
@@ -31,27 +36,58 @@ class Smoke:
         #                              + 1 because we also take the empty voxel just
         # after the last one.
         # Thus the +2
-        self.n = max(self.density_grid.evalActiveVoxelBoundingBox()[1]) + 2
+        bbox = self.density_grid.evalActiveVoxelBoundingBox()
+        self.min_voxel = min(bbox[0]) - 1
+        self.n = max(bbox[1]) + 2
         print("Base resolution : %s." % self.n)
         print("Grids opened.")
 
+    def compute_energies(self):
+        energies = np.zeros((self.n, self.n, self.n))
+
+        for (x, y, z) in product(range(self.n), repeat=3):
+            vx, vy, vz = self.velocity_accessor.probeValue((x, y, z))[0]
+            energies[x, y, z] = 0.5 * (vx * vx + vy * vy + vz * vz)
+
+        return energies
+
+    def wl_transform(self, energies):
+        wl_transform = np.zeros((self.n, self.n, self.n))
+
+        #TODO: compute wl transform
+
+        return wl_transform
+
     def make_higher_res(self, N, filename):
+        # Initializing output grids
         N_density_grid = vdb.FloatGrid()
         N_velocity_grid = vdb.Vec3SGrid()
         N_density_accessor = N_density_grid.getAccessor()
         N_velocity_accessor = N_velocity_grid.getAccessor()
 
+        # Initalizing necessary parameters
         scale = N / self.n
+        min_voxel_enhanced = int(scale * self.min_voxel)
+
+        i_min = math.ceil(math.log(self.n, 2))
+        i_max = math.floor(math.log(N / 2, 2))
+
+        energies = self.compute_energies()
+        energies_wl_transform = self.wl_transform(energies)
+
+        print("Loading noise tile.")
+        noise_tile = load_noise_tile('noiseTile')
+        print("Noise tile loaded.")
 
         print("Starting enhancing to new resolution %s." % N)
 
+        # Utilitary variables used for the progress bar display
         t0 = time()
-
         loop = 0
-        max_loop = N**3 - 1
+        max_loop = (N - min_voxel_enhanced)**3 - 1
         percent = int(max_loop / 100)
 
-        for (i, j, k) in product(range(N), repeat=3):
+        for (i, j, k) in product(range(min_voxel_enhanced, N), repeat=3):
             if (loop % percent == 0 or loop == max_loop):
                 printProgressBar(loop, max_loop, t0)
             
@@ -60,12 +96,17 @@ class Smoke:
             z = k / scale
 
             density = trilinear_interpolation(self.density_accessor, x, y, z)
-            N_density_accessor.setValueOn((i, j, k), density)
-
             velocity = trilinear_interpolation(self.velocity_accessor, x, y, z)
-            N_velocity_accessor.setValueOn((i, j, k), velocity)
+            turbulence_val = turbulence(x, y, z, i_min, i_max, noise_tile)
+            # TODO: compute WL transform of energy, interpolate it, put it in there
+            energy = 1
+
+            velocity = velocity + 2**(-5/6) * energy * turbulence_val
 
             # print("%s %s %s: density: %s  velocity: %s" % (i, j, k, density, velocity))
+            
+            N_density_accessor.setValueOn((i, j, k), density)
+            N_velocity_accessor.setValueOn((i, j, k), velocity)
 
             loop += 1
 
@@ -104,4 +145,4 @@ def printProgressBar (iteration, total, start_time, prefix = '', suffix = '', de
 
 
 smoke = Smoke("test.vdb")
-smoke.make_higher_res(80, "test_enhanced.vdb")
+smoke.make_higher_res(100, "test_enhanced.vdb")

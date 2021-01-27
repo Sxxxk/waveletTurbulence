@@ -40,7 +40,7 @@ cube.fill(min=(10, 10, 10), max=(18, 18, 18), value=1.0)
 cube.name = 'density'
 
 v = vdb.Vec3SGrid()
-v.fill(min=(10, 10, 10), max=(18, 18, 18), value=(0.0, 0.0, 0.0))
+v.fill(min=(10, 10, 10), max=(18, 18, 18), value=(1.0, 0.0, 0.0))
 
 # Name the grid "cube".
 v.name = 'v'

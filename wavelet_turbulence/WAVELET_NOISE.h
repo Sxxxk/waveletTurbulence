@@ -249,6 +249,13 @@ static void saveTile(float* const noiseTileData, std::string filename)
 
 	fwrite((void*)noiseTileData, sizeof(float), noiseTileSize * noiseTileSize * noiseTileSize, file);
 	fclose(file);
+  
+	std::ofstream file2;
+	file2.open(filename + "2");
+	for (int i = 0; i < noiseTileSize * noiseTileSize * noiseTileSize; i++) {
+		file2 << noiseTileData[i] << " ";
+	}
+	printf("Saved file on ascii format\n");
 
 	printf("saveTile: Noise tile file '%s' saved.\n", filename.c_str());
 }
