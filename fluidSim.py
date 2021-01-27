@@ -250,12 +250,16 @@ class FluidCube:
         self.u_prev = None
         self.v = None
         self.v_prev = None
+        self.w = None
+        self.w_prev = None
 
         self.dens = None
         self.dens_prev = None
 
+
     def IX(self, i, j, k):
         return (k * (N + 2) * (N + 2) + j * (N + 2) + i)
+
 
     def create(self, N, diffusion, viscosity, dt):
         """Crée le fluide
@@ -276,10 +280,13 @@ class FluidCube:
         self.u_prev = np.zeros(size)
         self.v = np.zeros(size)
         self.v_prev = np.zeros(size)
+        self.w = np.zeros(size)
+        self.w_prev = np.zeros(size)
 
         self.dens = np.zeros(size)
         self.dens_prev = np.zeros(size)
     
+
     def add_source(self, x, amount):
         """Add density
 
@@ -369,7 +376,7 @@ class FluidCube:
                                         + s1 * (t0 * (u0 * d0[self.IX(i1, j0, k0)] + u1 * d0[self.IX(i1, j0, k1)])
                                               + t1 * (u0 * d0[self.IX(i1, j1, k0)] + u1 * d0[self.IX(i1, j1, k1)]))
         
-        set_bnd(N, b, d)
+        self.set_bnd(N, b, d)
 
 
     def dens_step(self, x, x0, u, v, w):
@@ -392,38 +399,86 @@ class FluidCube:
 
         x, x0 = x0, x # Swap
         self.advect(0, x, x0, u, v, w)
-        
 
-    def addVelocity(self, x, y, z, amountX, amountY, amountZ):
-        """Add velocity
+    
+    def vel_step(self, u, v, w, u0, v0, w0):
+        """velocity step
 
         Args:
-            x (int): 
-            y (int): 
-            z (int): 
-            amountX (float): 
-            amountY (float): 
-            amountZ (float): 
+            u (array): 
+            v (array): 
+            w (array): 
+            u0 (array): 
+            v0 (array): 
+            w0 (array): 
         """
-        self.Vx[x, y, z] += amountX
-        self.Vy[x, y, z] += amountY
-        self.Vz[x, y, z] += amountZ
+        N = self.N
+        visc = self.visc
+        dt = self.dt
 
-    def makeStep(self):
-        diffuse(1, self.Vx0, self.Vx, self.visc, self.dt, 4, self.size)
-        diffuse(2, self.Vy0, self.Vy, self.visc, self.dt, 4, self.size)
-        diffuse(3, self.Vz0, self.Vz, self.visc, self.dt, 4, self.size)
+        self.add_source(u, u0)
+        self.add_source(v, v0)
+        self.add_source(w, w0)
 
-        project(self.Vx0, self.Vy0, self.Vz0, self.Vx, self.Vy, 4, self.size)
-
-        advect(1, self.Vx, self.Vx0, self.Vx0, self.Vy0, self.Vz0, self.dt, self.size)
-        advect(2, self.Vy, self.Vy0, self.Vx0, self.Vy0, self.Vz0, self.dt, self.size)
-        advect(3, self.Vz, self.Vz0, self.Vx0, self.Vy0, self.Vz0, self.dt, self.size)
-
-        project(self.Vx, self.Vy, self.Vz, self.Vx0, self.Vy0, 4, self.size)
+        u, u0 = u0, u # SWAP
+        self.diffuse(1, u, u0)
+        v, v0 = v0, v # SWAP
+        self.diffuse(1, v, v0)
+        w, w0 = w0, w # SWAP
+        self.diffuse(1, w, w0)
         
-        diffuse(0, self.s, self.density, self.diff, self.dt, 4, self.size)
-        advect(0, self.density, self.s, self.Vx, self.Vy, self.Vz, self.dt, self.size)
+        self.project(u, v, w, u0, v0, w0)
+
+        u, u0, v, v0, w, w0 = u0, u, v0, v, w0, w # SWAP
+
+        self.advect(1, u, u0, u0, v0, w0)
+        self.advect(2, v, v0, u0, v0, w0)
+        self.advect(3, w, w0, u0, v0, w0)
+
+        self.project(u, v, w, u0, v0, w0)
+
+
+    def project(self, u, v, w, p, div):
+        """project
+
+        Args:
+            u (array): 
+            v (array): 
+            w (array): 
+            p (array): 
+            div (array): 
+        """
+        N = self.N
+
+        h = 1/N
+        for i in range(1, N + 1):
+            for j in range(1, N + 1):
+                for k in range(1, N + 1):
+                    div[self.IX(i, j, k)] = -0.5 * h * (
+                            u[self.IX(i+1, j  , k  )] - u[self.IX(i-1, j  , k  )]
+                          + v[self.IX(i  , j+1, k  )] - u[self.IX(i  , j-1, k  )]
+                          + w[self.IX(i  , j  , k+1)] - u[self.IX(i  , j  , k-1)]
+                    )
+                    p[self.IX(i, j, k)] = 0
+        self.set_bnd(0, div)
+        self.set_bnd(0, p)
+
+        for n_k in range(20):
+            for i in range(1, N + 1):
+                for j in range(1, N + 1):
+                    for k in range(1, N + 1):
+                        p[self.IX(i, j, k)] = (div[self.IX(i, j, k)] 
+                            + p[self.IX(i-1, j  , k  )] + p[self.IX(i+1, j  , k  )]
+                            + p[self.IX(i  , j-1, k  )] + p[self.IX(i  , j+1, k  )]
+                            + p[self.IX(i  , j  , k-1)] + p[self.IX(i  , j  , k+1)]
+                        ) / 6
+            self.set_bnd(0, p)
+
+        for i in range(1, N + 1):
+            for j in range(1, N + 1):
+                for k in range(1, N + 1):
+                    u[self.IX(i, j, k)]
+
     
     def saveImg(self, filename):
         img = Image.new("RGB", (self.size, self.size))

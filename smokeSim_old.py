@@ -330,13 +330,16 @@ if __name__ == "__main__":
 
     print("==== initializing fluid ====")
     fluid = FluidCube()
-    fluid.create(N, 0.01, 0.01, 0.01)
+    fluid.create(N, 0.01, 0.1, 0.1)
     for i in range(N):
         for j in range(N):
             for k in range(N):
                 if dist3d((i, j, k), (20, 10, 20)) < 2:
-                    fluid.addDensity(i, j, k, 20)
-                fluid.addVelocity(i, j, k, 0, 2, 0)
+                    fluid.addDensity(i, j, k, 50)
+                rd1 = np.random.rand(3)[0] - 0.5
+                rd2 = np.random.rand(3)[1] - 0.5
+                rd3 = np.random.rand(3)[2] - 0.5
+                fluid.addVelocity(i, j, k, rd1, 10 + rd2, rd3)
 
     fluid.saveImg("img/img0")
     print("==== simulation ====")
