@@ -108,12 +108,9 @@ def project(velocX, velocY, velocZ, p, div, iterr, N):
         for j in range(1, N - 1):
             for i in range(1, N - 1):
                 div[i, j, k] = -0.5 * (
-                         velocX[i+1, j  , k  ]
-                        -velocX[i-1, j  , k  ]
-                        +velocY[i  , j+1, k  ]
-                        -velocY[i  , j-1, k  ]
-                        +velocZ[i  , j  , k+1]
-                        -velocZ[i  , j  , k-1]
+                         velocX[i+1, j  , k  ] - velocX[i-1, j  , k  ]
+                        +velocY[i  , j+1, k  ] - velocY[i  , j-1, k  ]
+                        +velocZ[i  , j  , k+1] - velocZ[i  , j  , k-1]
                     ) / N
                 p[i, j, k] = 0
 
