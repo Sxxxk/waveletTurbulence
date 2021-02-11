@@ -129,7 +129,7 @@ def WNoiseDz(x, y, z, noise_tile):
     return result
 
 def WVelocity(x, y, z, noise_tile):
-    # Use abitrary offsets on the noise tile instead of unsing
+    # Use abitrary offsets on the noise tile instead of using
     # 3 different noise tiles
     x1, y1, z1 = x + _NOISE_TILE_SIZE / 2, y, z
     x2, y2, z2 = x, y + _NOISE_TILE_SIZE / 2, z
