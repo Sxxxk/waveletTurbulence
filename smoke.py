@@ -7,7 +7,7 @@ import numpy as np
 from itertools import product
 from time import time
 
-from interpolate import trilinear_interpolation
+from interpolate import trilinear_interpolation, interpolate_wl
 from noise import load_noise_tile, turbulence
 
 
@@ -52,11 +52,9 @@ class Smoke:
         return energies
 
     def wl_transform(self, energies):
-        wl_transform = np.zeros((self.n, self.n, self.n))
-
-        #TODO: compute wl transform
-
-        return wl_transform
+        # /!\ Dimension changes !!! Haar downsamples by 2 !
+        coeff_dict = pywt.dwtn(energies, 'Haar')
+        return coeff_dict
 
     def make_higher_res(self, N, filename):
         # Initializing output grids
@@ -83,13 +81,14 @@ class Smoke:
 
         # Utilitary variables used for the progress bar display
         t0 = time()
+        last_time = t0
         loop = 0
         max_loop = (N - min_voxel_enhanced)**3 - 1
-        percent = int(max_loop / 100)
 
         for (i, j, k) in product(range(min_voxel_enhanced, N), repeat=3):
-            if (loop % percent == 0 or loop == max_loop):
+            if (time() - last_time > 0.5):
                 printProgressBar(loop, max_loop, t0)
+                last_time = time()
             
             x = i / scale            
             y = j / scale
@@ -98,18 +97,25 @@ class Smoke:
             density = trilinear_interpolation(self.density_accessor, x, y, z)
             velocity = trilinear_interpolation(self.velocity_accessor, x, y, z)
             turbulence_val = turbulence(x, y, z, i_min, i_max, noise_tile)
-            # TODO: compute WL transform of energy, interpolate it, put it in there
-            energy = 1
 
-            velocity = velocity + 2**(-5/6) * energy * turbulence_val
+            energy_wl_transform_interpolated = interpolate_wl(energies_wl_transform, x, y, z)
+            weight = 2**(-5/6) * energy_wl_transform_interpolated
+            # if energy_wl_transform_interpolated != 0:
+            #     print(i, j, k, energy_wl_transform_interpolated)
 
-            # print("%s %s %s: density: %s  velocity: %s" % (i, j, k, density, velocity))
+            velocity += weight * turbulence_val
+            # if energy_wl_transform_interpolated != 0:
+            #     print(i, j, k, weight * turbulence_val)
+
+            # if (energy_wl_transform_interpolated != 0 and velocity[0] == 1 and velocity[1] == 0 and velocity[2] ==0):
+            #     print("%s %s %s: density: %s  velocity: %s" % (i, j, k, density, velocity))
             
             N_density_accessor.setValueOn((i, j, k), density)
             N_velocity_accessor.setValueOn((i, j, k), velocity)
 
             loop += 1
 
+        print()
         print("total time: ", time() - t0, "s.")
         print("saving grids in %s." % filename)
         vdb.write(filename, grids = [N_density_grid, N_velocity_grid])
