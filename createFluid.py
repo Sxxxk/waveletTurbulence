@@ -82,6 +82,7 @@ class Grid:
 
 
 if __name__ == "__main__":
+    file = 'fluid_data_0190.vdb'
     g = Grid()
-    g.create()
+    g.create(file)
     grid = g.toArray()
