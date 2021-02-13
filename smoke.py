@@ -38,8 +38,8 @@ class Smoke:
         # after the last one.
         # Thus the +2
         bbox = self.density_grid.evalActiveVoxelBoundingBox()
-        self.min_voxel = max(min(bbox[0]) - 1, 0)
-        self.n = max(bbox[1]) + 2
+        self.min_voxel = max(min(bbox[0]) - 1 - 10, 0)
+        self.n = max(bbox[1]) + 2 + 10
         print("Base resolution : %s." % self.n)
         print("Grids opened.")
 
