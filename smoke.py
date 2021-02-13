@@ -98,12 +98,14 @@ class Smoke:
             t1 = y - j0
             t0 = 1 - t1
             u1 = z - k0
-            u0 = 1 - k1
+            u0 = 1 - u1
 
             value = s0 * (t0 * (u0 * d0[i0, j0, k0] + u1 * d0[i0, j0, k1])
                                        + t1 * (u0 * d0[i0, j1, k0] + u1 * d0[i0, j1, k1])) \
                                  + s1 * (t0 * (u0 * d0[i1, j0, k0] + u1 * d0[i1, j0, k1])
                                        + t1 * (u0 * d0[i1, j1, k0] + u1 * d0[i1, j1, k1]))
+
+            # print(value, d0[i, j, k])
             result_grid_accessor.setValueOn((i, j, k), value)
         
     
@@ -206,4 +208,4 @@ def printProgressBar (iteration, total, start_time, prefix = '', suffix = '', de
 
 
 smoke = Smoke("fluid_data_0190.vdb")
-smoke.make_higher_res(60, "result.vdb")
+smoke.make_higher_res(100, "result.vdb")
