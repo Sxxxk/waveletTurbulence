@@ -13,7 +13,7 @@ from noise import load_noise_tile, turbulence
 
 class Smoke:
     def __init__(self, filename):
-        self.dt = 0.01
+        self.dt = 0.1
         self.density_grid = None
         self.density_accessor = None
         self.velocity_grid = None
