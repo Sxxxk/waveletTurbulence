@@ -207,5 +207,6 @@ def printProgressBar (iteration, total, start_time, prefix = '', suffix = '', de
         print()
 
 
-smoke = Smoke("fluid_data_0190.vdb")
-smoke.make_higher_res(100, "result.vdb")
+for i in range(170, 220):
+    smoke = Smoke("vdb_hq/fluid_data_0%s.vdb" % i)
+    smoke.make_higher_res(100, "result_sim/result_0%s.vdb" % i)
