@@ -13,6 +13,7 @@ from noise import load_noise_tile, turbulence
 
 class Smoke:
     def __init__(self, filename):
+        self.dt = 0.01
         self.density_grid = None
         self.density_accessor = None
         self.velocity_grid = None
@@ -56,6 +57,58 @@ class Smoke:
         coeff_dict = pywt.dwtn(energies, 'Haar')
         return coeff_dict
 
+    def advect(self, d0, end):
+        """Advect density
+
+        Args:
+            d0 (numpy array): density before
+        """
+        N = end - 1
+        dt0 = self.dt * end
+        
+        new_density = np.zeros((N+2, N+2, N+2))
+        
+        for (i, j, k) in product(range(1, N + 1), repeat=3):
+            vel_value = self.velocity_accessor.getValue((i, j, k))
+            x = i - dt0 * vel_value[0]
+            y = j - dt0 * vel_value[1]
+            z = k - dt0 * vel_value[2]
+            
+            if x < 0.5:
+                x = 0.5
+            if x > N + 0.5:
+                x = N + 0.5
+            i0 = int(x)
+            i1 = i0 + 1
+
+            if y < 0.5:
+                y = 0.5
+            if y > N + 0.5:
+                y = N + 0.5
+            j0 = int(y)
+            j1 = j0 + 1
+
+            if z < 0.5:
+                z = 0.5
+            if z > N + 0.5:
+                z = N + 0.5
+            k0 = int(z)
+            k1 = k0 + 1
+
+            s1 = x - i0
+            s0 = 1 - s1
+            t1 = y - j0
+            t0 = 1 - t1
+            u1 = z - k0
+            u0 = 1 - k1
+
+            new_density[i, j, k] = s0 * (t0 * (u0 * d0[i0, j0, k0] + u1 * d0[i0, j0, k1])
+                                       + t1 * (u0 * d0[i0, j1, k0] + u1 * d0[i0, j1, k1])) \
+                                 + s1 * (t0 * (u0 * d0[i1, j0, k0] + u1 * d0[i1, j0, k1])
+                                       + t1 * (u0 * d0[i1, j1, k0] + u1 * d0[i1, j1, k1]))
+        
+        return new_density
+    
     def make_higher_res(self, N, filename):
         # Initializing output grids
         N_density_grid = vdb.FloatGrid()
@@ -114,6 +167,10 @@ class Smoke:
             N_velocity_accessor.setValueOn((i, j, k), velocity)
 
             loop += 1
+        
+        for (i, j, k) in product(range(min_voxel_enhanced, N), repeat=3):
+            # TODO
+            break
 
         print()
         print("total time: ", time() - t0, "s.")

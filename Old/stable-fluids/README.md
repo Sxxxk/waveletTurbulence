@@ -1,6 +1,5 @@
 # n-D stable fluids
 An adaptation of Jos Stam's stable fluids to Python/NumPy with a slightly modified routine (no FFT.)
-![](test.gif)
 
 Citations:\
 [Philip Zucker's blog post on fluid simulation](http://www.philipzucker.com/annihilating-my-friend-will-with-a-python-fluid-simulation-like-the-cur-he-is/)\
