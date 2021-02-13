@@ -24,7 +24,7 @@ class Smoke:
             if grid.name == 'density':
                 self.density_grid = vdb.read(filename, grid.name)
                 self.density_accessor = self.density_grid.getAccessor()
-            elif grid.name == 'v':
+            elif grid.name == 'velocity':
                 self.velocity_grid = vdb.read(filename, grid.name)
                 self.velocity_accessor = self.velocity_grid.getAccessor()
 
@@ -37,7 +37,7 @@ class Smoke:
         # after the last one.
         # Thus the +2
         bbox = self.density_grid.evalActiveVoxelBoundingBox()
-        self.min_voxel = min(bbox[0]) - 1
+        self.min_voxel = max(min(bbox[0]) - 1, 0)
         self.n = max(bbox[1]) + 2
         print("Base resolution : %s." % self.n)
         print("Grids opened.")
@@ -150,5 +150,5 @@ def printProgressBar (iteration, total, start_time, prefix = '', suffix = '', de
         print()
 
 
-smoke = Smoke("test.vdb")
-smoke.make_higher_res(100, "test_enhanced.vdb")
+smoke = Smoke("fluid_data_0190.vdb")
+smoke.make_higher_res(100, "result.vdb")
