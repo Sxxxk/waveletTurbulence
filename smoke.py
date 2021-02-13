@@ -98,20 +98,24 @@ class Smoke:
             t1 = y - j0
             t0 = 1 - t1
             u1 = z - k0
-            u0 = 1 - k1
+            u0 = 1 - u1
 
             value = s0 * (t0 * (u0 * d0[i0, j0, k0] + u1 * d0[i0, j0, k1])
                                        + t1 * (u0 * d0[i0, j1, k0] + u1 * d0[i0, j1, k1])) \
                                  + s1 * (t0 * (u0 * d0[i1, j0, k0] + u1 * d0[i1, j0, k1])
                                        + t1 * (u0 * d0[i1, j1, k0] + u1 * d0[i1, j1, k1]))
+            
+            value = d0[i, j, k]
             result_grid_accessor.setValueOn((i, j, k), value)
         
     
     def make_higher_res(self, N, filename):
         # Initializing output grids
         N_density_grid = vdb.FloatGrid()
+        N_density_grid.name = 'density'
         N_density_accessor = N_density_grid.getAccessor()
         N_velocity_grid = vdb.Vec3SGrid()
+        N_velocity_grid.name = 'velocity'
         N_velocity_accessor = N_velocity_grid.getAccessor()
 
         N_density_array = np.zeros((N+1, N+1, N+1))
@@ -173,7 +177,7 @@ class Smoke:
         print()
         print("total time: ", time() - t0, "s.")
         print("saving grids in %s." % filename)
-        vdb.write(filename, grids = [N_density_grid])
+        vdb.write(filename, grids = [N_density_grid, N_velocity_grid])
 
 
 # Print iterations progress
@@ -206,4 +210,4 @@ def printProgressBar (iteration, total, start_time, prefix = '', suffix = '', de
 
 
 smoke = Smoke("fluid_data_0190.vdb")
-smoke.make_higher_res(60, "result.vdb")
+smoke.make_higher_res(128, "result_0.vdb")
