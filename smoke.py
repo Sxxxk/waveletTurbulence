@@ -209,7 +209,5 @@ def printProgressBar (iteration, total, start_time, prefix = '', suffix = '', de
         print()
 
 
-for i in range(150, 251):
-    print("loop n° %s" % (i - 150))
-    smoke = Smoke("vdb_seq/fluid_data_0%s.vdb" % i)
-    smoke.make_higher_res(100, "result_sim/result_0%s.vdb" % i)
+smoke = Smoke("fluid_data_0190.vdb")
+smoke.make_higher_res(100, "result.vdb")
