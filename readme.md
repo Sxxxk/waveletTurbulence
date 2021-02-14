@@ -1,5 +1,10 @@
 # Wavelet turbulence
 
+This project is a python implementation of the paper [Wavelet Turbulence for Fluid Simulation]
+(https://www.cs.cornell.edu/~tedkim/WTURB/wavelet_turbulence.pdf) from Theodore Kim, Doug James, Nils Thurey, and Markus Gross.   
+It's the result of a school project in our Wavelet course, where we had to implement a paper that use wavelets.   
+We did not implement everything the wavelet noise for example because it's an other paper.
+
 ## Requirements
 ### OpenVDB
 Refer to instructions found there : https://pypi.org/project/pyopenvdb/ (it is not only pip install pyopenvdb)
@@ -23,7 +28,7 @@ You can view the files in blender for example (drag & drop the file in blender).
 ## Files
  - Archive : contains programs that we wrote but we do not use now
     - `fluidSim.py` and `smokeSim.py` are implementations of Jos Stam's paper
-    - `test_vdb_format.py` is a test file pour the VDB format
+    - `test_vdb_format.py` is a test file for the VDB format
  - render : contains render images and files
  - simulation : contains folders with VDB sequences
  - `createFluid.py` is a program that read a vdb file and store it in a class
