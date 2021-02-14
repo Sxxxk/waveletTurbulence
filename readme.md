@@ -1,5 +1,9 @@
 # Wavelet turbulence
 
+<p align="center">
+  <img src="render/rendu3.png" />
+</p>
+
 This project is a python implementation of the paper [Wavelet Turbulence for Fluid Simulation](https://www.cs.cornell.edu/~tedkim/WTURB/wavelet_turbulence.pdf) from Theodore Kim, Doug James, Nils Thurey, and Markus Gross.   
 It's the result of a school project in our Wavelet course, where we had to implement a paper that use wavelets.   
 We did not implement everything the wavelet noise for example because it's an other paper.
