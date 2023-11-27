@@ -146,6 +146,7 @@ def WVelocity(x, y, z, noise_tile):
 
     return np.array([f3y - f2z, f1z - f3x, f2x - f1y])
 
+#实现速度场的小波扰动
 def turbulence(x, y, z, i_min, i_max, noise_tile):
     sum = np.array([0., 0., 0.])
     for i in range(i_min, i_max + 1):

@@ -43,6 +43,7 @@ class Smoke:
         print("Base resolution : %s." % self.n)
         print("Grids opened.")
 
+    #能量计算
     def compute_energies(self):
         energies = np.zeros((self.n, self.n, self.n))
 
@@ -52,11 +53,15 @@ class Smoke:
 
         return energies
 
+    #
     def wl_transform(self, energies):
         # /!\ Dimension changes !!! Haar downsamples by 2 !
+        #pywt是一个python的小波库
+        #其中Haar是小波类型
         coeff_dict = pywt.dwtn(energies, 'Haar')
         return coeff_dict
 
+    #平流操作
     def advect(self, d0, velocity_accessor, end, result_grid_accessor):
         """Advect density
 
@@ -108,7 +113,7 @@ class Smoke:
             # print(value, d0[i, j, k])
             result_grid_accessor.setValueOn((i, j, k), value)
         
-    
+    #上采样
     def make_higher_res(self, N, filename):
         # Initializing output grids
         N_density_grid = vdb.FloatGrid()
