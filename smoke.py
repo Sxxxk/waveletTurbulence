@@ -178,7 +178,7 @@ class Smoke:
             density = trilinear_interpolation(self.density_accessor, x, y, z)
             #对速度场直接进行三线性上采样
             velocity = trilinear_interpolation(self.velocity_accessor, x, y, z)
-            #得到湍流值
+            #得到湍流值,该湍流值由噪声进行扰动
             turbulence_val = turbulence(x, y, z, i_min, i_max, noise_tile)
 
             energy_wl_transform_interpolated = interpolate_wl(energies_wl_transform, x, y, z)
