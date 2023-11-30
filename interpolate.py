@@ -15,7 +15,8 @@ def trilinear_interpolation(grid, x, y, z):
     xd = x - x0
     yd = y - y0
     zd = z - z0
-    
+
+    #三线性插值。由于得到的xyz不会处在网格的边界上。因此需要周围8个坐标上的值进行插值得到
     try:
         c000 = grid.probeValue((x0, y0, z0))[0]
         c001 = grid.probeValue((x0, y0, z1))[0]
@@ -48,13 +49,16 @@ def trilinear_interpolation(grid, x, y, z):
 
     return c0 * (1 - zd) + c1 * zd
 
+#小波能量场的插值上采样，同样使用的是三线性上采样
 def interpolate_wl(grids, x, y, z):
+#将采样坐标再缩小1/2
     x = x/2 - 0.5
     y = y/2 - 0.5
     z = z/2 - 0.5
-
+    #得到网格分辨率
     max_grid_index = len(grids['aaa'][0][0]) - 1
 
+    #如果采样坐标超出限制
     if x < 0:
         x = 0
     elif x >= max_grid_index:
@@ -69,7 +73,7 @@ def interpolate_wl(grids, x, y, z):
         z = 0
     elif z >= max_grid_index:
         z = max_grid_index - 1
-
+    #得到采样点周围的八个网格（能量值）
     x0 = int(x)
     x1 = x0 + 1
     y0 = int(y)
@@ -89,7 +93,7 @@ def interpolate_wl(grids, x, y, z):
     c101 = 0
     c110 = 0
     c111 = 0
-
+    #对于各个通道（除了aaa高通通道以外）
     for grid_name in grids:
         if grid_name != 'aaa':
             c000 += grids[grid_name][x0][y0][z0]

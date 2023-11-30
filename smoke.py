@@ -165,27 +165,34 @@ class Smoke:
         max_loop = (N - min_voxel_enhanced)**3 - 1
 
         #上采样过程
+        # 创建了一个三重循环，这将遍历从 min_voxel_enhanced 开始到 N-1 结束的整数范围的所有可能的三元组 (i, j, k)
+        #三元组belike：(0, 0, 0)(0, 0, 1)(0, 0, 2)(0, 1, 0)(0, 1, 1)(0, 1, 2)。
         for (i, j, k) in product(range(min_voxel_enhanced, N), repeat=3):
             #输出过程信息
             if (time() - last_time > 0.5):
                 printProgressBar(loop, max_loop, t0)
                 last_time = time()
-            
+
+            #得到低分辨率上的三维坐标xyz
             x = i / scale            
             y = j / scale
             z = k / scale
-            #对密度场直接进行三线性上采样
+            #对密度场直接进行三线性上采样。即利用低分辨率坐标xyz来采样低分辨率密度场
             density = trilinear_interpolation(self.density_accessor, x, y, z)
-            #对速度场直接进行三线性上采样
+            #对速度场直接进行三线性上采样。即利用低分辨率坐标xyz来采样低分辨率速度场
             velocity = trilinear_interpolation(self.velocity_accessor, x, y, z)
-            #得到湍流值,该湍流值由噪声进行扰动
+            #得到湍流值,该湍流值是经过噪声合成的
             turbulence_val = turbulence(x, y, z, i_min, i_max, noise_tile)
 
+            #对小波合成之后的能量场进行插值,即利用低分辨率的xyz坐标来采样能量场。又因为能量场经过了小波变换所以分辨率是之前的1/2因此在该方法中要做出相应改变
             energy_wl_transform_interpolated = interpolate_wl(energies_wl_transform, x, y, z)
+            #得到权重，具体可见原论文(8)式。这里相当于2**(-5/6)*et
             weight = 2**(-5/6) * energy_wl_transform_interpolated
             # if energy_wl_transform_interpolated != 0:
             #     print(i, j, k, energy_wl_transform_interpolated)
 
+            #更新速度，其中weight = 2**(-5/6)*et ，turbulence_val即为(8)式中的y(X)
+            #注意这里的y(X)是一个噪声合成函数
             velocity += weight * turbulence_val
             # if energy_wl_transform_interpolated != 0:
             #     print(i, j, k, weight * turbulence_val)
@@ -194,8 +201,9 @@ class Smoke:
             #     print("%s %s %s: density: %s  velocity: %s" % (i, j, k, density, velocity))
             
             N_density_array[i][j][k] = density
+            #更新速度场
             N_velocity_accessor.setValueOn((i, j, k), velocity)
-
+            #循环次数++
             loop += 1
         #根据新的速度场对密度场进行平流操作
         self.advect(N_density_array, N_velocity_accessor, N, N_density_accessor)

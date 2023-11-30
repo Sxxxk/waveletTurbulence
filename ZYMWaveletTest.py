@@ -1,6 +1,17 @@
 import pywt
 import numpy as np
 import matplotlib.pyplot as plt
+
+# from itertools import product
+#
+# # 定义范围
+# min_voxel_enhanced = 0
+# N = 3
+# # 三重循环迭代
+# for (i, j, k) in product(range(min_voxel_enhanced, N), repeat=3):
+#     print(f"Processing voxel at ({i}, {j}, {k})")
+
+#在GPU上可能需要一个[2，2，2]的线程组来实现
 def haar_wavelet_3d(data):
     # 高通滤波
     #以下为正确解值
@@ -33,13 +44,16 @@ def haar_wavelet_3d(data):
     return coeffs
 
 # 生成一个三维数据，这里假设是一个立方体
-data = np.random.random((4,4,4))
+data = np.random.random((4,8,4))
 data1 = data
 
 # 进行三维离散小波变换
 coeffs = haar_wavelet_3d(data)
 print(coeffs['ddd'])
+print("length is ")
+print(len(coeffs['ddd'][0])-1)
 print("next")
+
 
 # 可视化一个示例，这里只展示了 add 分量
 import matplotlib.pyplot as plt
