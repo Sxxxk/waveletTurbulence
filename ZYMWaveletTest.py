@@ -2,6 +2,7 @@ import pywt
 import numpy as np
 import matplotlib.pyplot as plt
 
+<<<<<<< Updated upstream
 # from itertools import product
 #
 # # 定义范围
@@ -12,6 +13,10 @@ import matplotlib.pyplot as plt
 #     print(f"Processing voxel at ({i}, {j}, {k})")
 
 #在GPU上可能需要一个[2，2，2]的线程组来实现
+=======
+# 生成一个三维数据，这里假设是一个立方体
+data = np.random.random((8, 8, 8))
+>>>>>>> Stashed changes
 def haar_wavelet_3d(data):
     # 高通滤波
     #以下为正确解值
@@ -43,6 +48,7 @@ def haar_wavelet_3d(data):
     coeffs = {'aaa': aaa, 'aad': aad, 'ada': ada, 'daa': daa, 'add': add, 'dad': dad, 'dda': dda, 'ddd': ddd}
     return coeffs
 
+<<<<<<< Updated upstream
 # 生成一个三维数据，这里假设是一个立方体
 data = np.random.random((4,8,4))
 data1 = data
@@ -60,6 +66,18 @@ import matplotlib.pyplot as plt
 plt.imshow(coeffs['ddd'][:, :, 0], cmap='gray')
 plt.title('add Component')
 plt.show()
+=======
+
+
+# 进行三维离散小波变换
+# coeffs = haar_wavelet_3d(data)
+#
+# # 可视化一个示例，这里只展示了 add 分量
+# import matplotlib.pyplot as plt
+# plt.imshow(coeffs[4][:, :, 0], cmap='gray')
+# plt.title('add Component')
+# plt.show()
+>>>>>>> Stashed changes
 
 
 
@@ -90,3 +108,6 @@ print(ddd)
 plt.imshow(ddd[:, :, 0], cmap='gray')
 plt.title("dad")
 plt.show()
+
+
+

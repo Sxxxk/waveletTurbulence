@@ -149,7 +149,7 @@ class Smoke:
 
         #计算湍流的能量，即博士论文中的et(n/2).但是实际的计算并没有使用博士论文中的et，而是使用的原论文中的e(x) = 1/2*(|ux|^2)
         energies = self.compute_energies()
-        #湍流能量的小波合成
+        #湍流能量的小波合成,对应计算公式中的et计算
         energies_wl_transform = self.wl_transform(energies)
 
         print("Loading noise tile.")
@@ -182,12 +182,20 @@ class Smoke:
             density = trilinear_interpolation(self.density_accessor, x, y, z)
             #对速度场直接进行三线性上采样。即利用低分辨率坐标xyz来采样低分辨率速度场
             velocity = trilinear_interpolation(self.velocity_accessor, x, y, z)
+<<<<<<< Updated upstream
             #得到湍流值,该湍流值是经过噪声合成的
+=======
+            #得到湍流值,该湍流值由噪声进行扰动,这里对应论文中的y(X)的计算
+>>>>>>> Stashed changes
             turbulence_val = turbulence(x, y, z, i_min, i_max, noise_tile)
 
             #对小波合成之后的能量场进行插值,即利用低分辨率的xyz坐标来采样能量场。又因为能量场经过了小波变换所以分辨率是之前的1/2因此在该方法中要做出相应改变
             energy_wl_transform_interpolated = interpolate_wl(energies_wl_transform, x, y, z)
+<<<<<<< Updated upstream
             #得到权重，具体可见原论文(8)式。这里相当于2**(-5/6)*et
+=======
+
+>>>>>>> Stashed changes
             weight = 2**(-5/6) * energy_wl_transform_interpolated
             # if energy_wl_transform_interpolated != 0:
             #     print(i, j, k, energy_wl_transform_interpolated)
