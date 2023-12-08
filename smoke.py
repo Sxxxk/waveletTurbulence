@@ -9,6 +9,7 @@ from time import time
 from interpolate import trilinear_interpolation, interpolate_wl
 from noise import load_noise_tile, turbulence
 
+#smokeSim 226中可见原来的分辨率大小是40*40*40.smoke.py将其上采样到100*100*100
 
 class Smoke:
     def __init__(self, filename):
