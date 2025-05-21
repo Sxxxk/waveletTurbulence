@@ -49,12 +49,12 @@ def compare_local_entropy(image_paths, radius=5):
     for i, res in enumerate(results):
         plt.subplot(2, cols, i + 1)
         plt.imshow(res['image'], cmap='gray')
-        plt.title(f"{os.path.basename(res['path'])}\n原图")
+        plt.title(f"{os.path.basename(res['path'])}", fontsize=20,fontweight='bold')
         plt.axis('off')
 
         plt.subplot(2, cols, i + 1 + cols)
         plt.imshow(res['entropy_map'], cmap='inferno')
-        plt.title(f"局部熵图\n平均熵: {res['entropy']:.4f}")
+        plt.title(f"平均熵: {res['entropy']:.4f}", fontsize=20,fontweight='bold')
         plt.axis('off')
 
     plt.tight_layout()
