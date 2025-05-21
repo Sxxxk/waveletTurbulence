@@ -62,9 +62,9 @@ def compare_local_entropy(image_paths, radius=5):
 
     return results
 image_paths = [
-    'DetailSmokePicture/default.png',
-    'DetailSmokePicture/upSampling.png',
-    'DetailSmokePicture/ours.png',
+    'DetailSmokePicture/1000/default.png',
+    'DetailSmokePicture/1000/upSampling.png',
+    'DetailSmokePicture/1000/ours.png',
 ]
 
 compare_local_entropy(image_paths, radius=5)
